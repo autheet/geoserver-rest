@@ -3318,3 +3318,67 @@ class Geoserver:
             return "Service's option updated successfully"
         else:
             raise GeoserverException(r.status_code, r.content)
+
+    def update_service_workspace(self, service: str, workspace: str, **kwargs):
+        """
+        Update selected service's options for a specific workspace.
+
+        Parameters
+        ----------
+        service : str
+            Type of service (e.g., wms, wfs)
+        workspace : str
+            The name of the workspace.
+        kwargs : dict
+            Options to be modified (e.g., maxRenderingTime=600)
+
+        Returns
+        -------
+        str
+            A success message indicating that the options were updated.
+
+        Raises
+        ------
+        GeoserverException
+            If there is an issue updating the service's options.
+        """
+        # /services/wms/workspaces/{workspace}/settings
+        url = "{}/rest/services/{}/workspaces/{}/settings".format(self.service_url, service, workspace)
+        headers = {"content-type": "text/xml"}
+
+        data = ""
+        for key, value in kwargs.items():
+            data += "<{}><{}>{}</{}></{}>".format(service, key, value, key, service)
+
+        r = self._requests("put", url, data=data, headers=headers)
+
+        if r.status_code == 200:
+            return "Service's option updated successfully"
+        else:
+            raise GeoserverException(r.status_code, r.content)
+
+    def get_services(self):
+        """
+        List all available services.
+        """
+        url = "{}/rest/services".format(self.service_url)
+        r = self._requests("get", url)
+        if r.status_code == 200:
+            return r.json()
+        else:
+            raise GeoserverException(r.status_code, r.content)
+
+    def get_service_settings(self, service: str, workspace: str = None):
+        """
+        Get settings for a service, optionally for a specific workspace.
+        """
+        if workspace:
+            url = "{}/rest/services/{}/workspaces/{}/settings".format(self.service_url, service, workspace)
+        else:
+            url = "{}/rest/services/{}/settings".format(self.service_url, service)
+        
+        r = self._requests("get", url)
+        if r.status_code == 200:
+            return r.json()
+        else:
+            raise GeoserverException(r.status_code, r.content)
