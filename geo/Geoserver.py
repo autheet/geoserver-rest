@@ -3382,3 +3382,45 @@ class Geoserver:
             return r.json()
         else:
             raise GeoserverException(r.status_code, r.content)
+
+    def update_wms_settings(
+        self, 
+        settings: Dict[str, Any] = None,
+        data: str = None,
+        workspace: Optional[str] = None,
+        content_type: str = "application/json"
+    ):
+        """
+        Update WMS settings.
+        
+        Parameters
+        ----------
+        settings : dict, optional
+            The WMS settings as a dictionary (for JSON).
+        data : str, optional
+            The WMS settings as a string (e.g. XML).
+        workspace : str, optional
+            The name of the workspace.
+        content_type : str, optional
+            The content type of the request.
+            
+        Returns
+        -------
+        str
+            The response text.
+        """
+        if workspace:
+            url = "{}/rest/workspaces/{}/services/wms/settings".format(self.service_url, workspace)
+        else:
+            url = "{}/rest/services/wms/settings".format(self.service_url)
+            
+        headers = {"content-type": content_type}
+        
+        if settings is not None:
+            r = self._requests("put", url, json=settings, headers=headers)
+        else:
+            r = self._requests("put", url, data=data, headers=headers)
+            
+        if r.status_code == 200:
+            return r.text
+        raise GeoserverException(r.status_code, r.content)
